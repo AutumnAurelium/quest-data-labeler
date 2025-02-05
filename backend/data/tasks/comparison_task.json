@@ -21,9 +21,9 @@
       "step": 1
     },
     "response_preference": {
-      "type": "ranking",
+      "type": "select",
       "label": "Response Preference",
-      "description": "Rank the responses from best to worst",
+      "description": "Select the better response",
       "required": true,
       "options": [
         {"label": "Response 1", "value": "1"},
