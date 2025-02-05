@@ -1,0 +1,43 @@
+{
+  "taskInfo": {
+    "name": "Single Response Evaluation",
+    "description": "Evaluate the quality of individual AI responses",
+    "instructions": "Read the response and rate various aspects of its quality."
+  },
+  "dataset": "single_test.jsonl",
+  "results": "single_results.jsonl",
+  "presentation": {
+    "type": "single",
+    "displayType": "standard"
+  },
+  "feedback": {
+    "clarity": {
+      "type": "numeric",
+      "label": "Clarity",
+      "description": "Rate how clear and understandable the response is",
+      "required": true,
+      "min": 1,
+      "max": 5
+    },
+    "accuracy": {
+      "type": "numeric",
+      "label": "Accuracy",
+      "description": "Rate how accurate the information is",
+      "required": true,
+      "min": 1,
+      "max": 5
+    },
+    "issues": {
+      "type": "multiselect",
+      "label": "Issues",
+      "description": "Select any issues present in the response",
+      "required": false,
+      "options": [
+        {"label": "Grammar", "value": "grammar"},
+        {"label": "Factual errors", "value": "factual"},
+        {"label": "Unclear explanation", "value": "unclear"},
+        {"label": "Off-topic", "value": "offtopic"}
+      ]
+    }
+  }
+}

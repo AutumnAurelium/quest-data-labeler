@@ -1,0 +1,40 @@
+{
+  "taskInfo": {
+    "name": "Basic Comparison Task",
+    "description": "Compare two AI responses and rate their quality",
+    "instructions": "Read both responses carefully and provide ratings for each aspect."
+  },
+  "dataset": "comparison_test.jsonl",
+  "results": "comparison_results.jsonl",
+  "presentation": {
+    "type": "comparison",
+    "displayType": "side_by_side"
+  },
+  "feedback": {
+    "overall_quality": {
+      "type": "numeric",
+      "label": "Overall Quality",
+      "description": "Rate the overall quality of the responses",
+      "required": true,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    "response_preference": {
+      "type": "ranking",
+      "label": "Response Preference",
+      "description": "Rank the responses from best to worst",
+      "required": true,
+      "options": [
+        {"label": "Response 1", "value": "1"},
+        {"label": "Response 2", "value": "2"}
+      ]
+    },
+    "comments": {
+      "type": "text",
+      "label": "Additional Comments",
+      "description": "Provide any additional feedback",
+      "required": false
+    }
+  }
+}
