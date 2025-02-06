@@ -15,26 +15,28 @@
       "type": "numeric",
       "label": "Overall Quality",
       "description": "Rate the overall quality of the responses",
-      "required": true,
       "min": 1,
-      "max": 5,
-      "step": 1
+      "max": 5
     },
-    "response_preference": {
+    "preferred_response": {
       "type": "select",
-      "label": "Response Preference",
-      "description": "Select the better response",
-      "required": true,
+      "label": "Preferred Response",
+      "description": "Which response do you prefer?",
       "options": [
-        {"label": "Response 1", "value": "1"},
-        {"label": "Response 2", "value": "2"}
+        {
+          "label": "Response 1",
+          "value": "1"
+        },
+        {
+          "label": "Response 2",
+          "value": "2"
+        }
       ]
     },
     "comments": {
       "type": "text",
       "label": "Additional Comments",
-      "description": "Provide any additional feedback",
-      "required": false
+      "description": "Provide any additional feedback"
     }
   }
 }

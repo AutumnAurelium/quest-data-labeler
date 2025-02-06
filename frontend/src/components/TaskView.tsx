@@ -8,19 +8,18 @@ import {
   TaskResult,
 } from "../api_util";
 import FeedbackInput from "./FeedbackInput";
-import PromptCompletion from "./PromptCompletion";
-import MetadataContainer from "./MetadataContainer";
+import SampleViewer from "./SampleView";
 
 export default function TaskView(props: { task: string }) {
   const [task, setTask] = useState<TaskDef | null>(null);
-  const [sample, setSample] = useState<Sample | null>(null);
+  const [samples, setSamples] = useState<Sample[]>([]);
   const [feedbackResults, setFeedback] = useState<
     Record<string, string | string[] | number>
   >({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch task definition and a sample
+  // Fetch task definition and samples
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -33,11 +32,17 @@ export default function TaskView(props: { task: string }) {
         }
         setTask(taskData);
 
-        const samples = await getSample(taskData.dataset);
-        if (samples.length === 0) {
+        const fetchedSamples = await getSample(taskData.dataset);
+        if (fetchedSamples.length === 0) {
           throw new Error("No samples available");
         }
-        setSample(samples[0]);
+
+        // Validate sample count for single presentation type
+        if (taskData.presentation.type === "single" && fetchedSamples.length !== 1) {
+          throw new Error("Single presentation type requires exactly one sample");
+        }
+
+        setSamples(fetchedSamples);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "An unexpected error occurred"
@@ -52,7 +57,7 @@ export default function TaskView(props: { task: string }) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!task || !sample) {
+    if (!task || samples.length === 0) {
       setError("No task or sample data available");
       return;
     }
@@ -60,9 +65,26 @@ export default function TaskView(props: { task: string }) {
     try {
       setError(null);
 
+      // Add default values for numeric inputs if not present
+      const feedbackWithDefaults = { ...feedbackResults };
+      Object.entries(task.feedback).forEach(([key, feedback]) => {
+        if (feedback.type === "numeric" && !(key in feedbackResults)) {
+          feedbackWithDefaults[key] = feedback.defaultValue ?? feedback.min;
+        }
+      });
+
       // Validate that all required feedback is provided
       const missingFields = Object.entries(task.feedback).filter(
-        ([key]) => !feedbackResults[key]
+        ([key, feedback]) => {
+          if (feedback.required === false) return false;
+          const value = feedbackWithDefaults[key];
+          // For numeric feedback, check if value is a number (including 0)
+          if (feedback.type === "numeric") {
+            return typeof value !== "number";
+          }
+          // For other types, check if value is empty/undefined
+          return !value;
+        }
       );
 
       if (missingFields.length > 0) {
@@ -70,22 +92,28 @@ export default function TaskView(props: { task: string }) {
         return;
       }
 
-      // Prepare and submit results
+      // Prepare and submit results with default values included
       const result: TaskResult = {
-        sample,
-        feedback: feedbackResults,
+        sample: samples[0], // Submit first sample as the reference
+        feedback: feedbackWithDefaults,
         timestamp: new Date().toISOString(),
       };
 
       await submitResult(task.results, result);
 
-      // Reset form and fetch new sample
+      // Reset form and fetch new samples
       setFeedback({});
-      const samples = await getSample(task.dataset);
-      if (samples.length === 0) {
+      const newSamples = await getSample(task.dataset);
+      if (newSamples.length === 0) {
         throw new Error("No more samples available");
       }
-      setSample(samples[0]);
+      
+      // Validate sample count for single presentation type
+      if (task.presentation.type === "single" && newSamples.length !== 1) {
+        throw new Error("Single presentation type requires exactly one sample");
+      }
+
+      setSamples(newSamples);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred"
@@ -107,7 +135,7 @@ export default function TaskView(props: { task: string }) {
     );
   }
 
-  if (!task || !sample) {
+  if (!task || samples.length === 0) {
     return <div>No data available</div>;
   }
 
@@ -117,14 +145,8 @@ export default function TaskView(props: { task: string }) {
       <p>{task.taskInfo.description}</p>
       <p>{task.taskInfo.instructions}</p>
 
-      {/* Display sample based on presentation settings */}
+      {/* Display samples based on presentation settings */}
       <div className="sample-display">
-        <MetadataContainer
-          metadata={{
-            ID: sample.id,
-            Timestamp: sample.timestamp,
-          }}
-        />
         {task.presentation.type === "comparison" && (
           <div
             className={
@@ -133,22 +155,20 @@ export default function TaskView(props: { task: string }) {
                 : "stacked"
             }
           >
-            {sample.options.map((option, index) => (
+            {samples.map((sample, index) => (
               <div className="message-container" key={index}>
-                <PromptCompletion
-                  prompt={option.prompt}
-                  completion={option.completion}
-                />
+                <div className="section-divider">
+                  <div className="section-divider-line" />
+                  <span className="section-divider-text">SAMPLE {String.fromCharCode(65 + index)}</span>
+                </div>
+                <SampleViewer sample={sample} />
               </div>
             ))}
           </div>
         )}
-        {task.presentation.type === "single" && sample.options[0] && (
+        {task.presentation.type === "single" && (
           <div className="message-container">
-            <PromptCompletion
-              prompt={sample.options[0].prompt}
-              completion={sample.options[0].completion}
-            />
+            <SampleViewer sample={samples[0]} />
           </div>
         )}
       </div>
@@ -159,8 +179,12 @@ export default function TaskView(props: { task: string }) {
             <FeedbackInput
               feedback={feedback}
               value={
-                feedbackResults[key] ||
-                (feedback.type === "numeric" ? feedback.min : "")
+                feedbackResults[key] ??
+                (feedback.type === "numeric"
+                  ? feedback.defaultValue ?? feedback.min
+                  : feedback.type === "ranking"
+                  ? feedback.options.map((option) => option.value)
+                  : "")
               }
               onChange={(value) =>
                 setFeedback((prev) => ({ ...prev, [key]: value }))

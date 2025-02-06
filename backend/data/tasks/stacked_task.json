@@ -15,18 +15,25 @@
       "type": "ranking",
       "label": "Response Ranking",
       "description": "Rank the responses from best to worst",
-      "required": true,
       "options": [
-        {"label": "Response 1", "value": "1"},
-        {"label": "Response 2", "value": "2"},
-        {"label": "Response 3", "value": "3"}
+        {
+          "label": "Response 1",
+          "value": "1"
+        },
+        {
+          "label": "Response 2",
+          "value": "2"
+        },
+        {
+          "label": "Response 3",
+          "value": "3"
+        }
       ]
     },
     "best_aspects": {
       "type": "text",
       "label": "Best Aspects",
-      "description": "What made the top-ranked response better?",
-      "required": false
+      "description": "What made the top-ranked response better?"
     }
   }
 }

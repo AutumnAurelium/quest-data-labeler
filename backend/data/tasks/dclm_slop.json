@@ -1,0 +1,26 @@
+{
+  "taskInfo": {
+    "name": "DCLM Slop Evaluation",
+    "description": "Evaluate the quality of DCLM samples",
+    "instructions": "Read the text and determine if it is slop."
+  },
+  "dataset": "dclm.jsonl",
+  "results": "dclm_slop_results.jsonl",
+  "presentation": {
+    "type": "comparison",
+    "displayType": "side_by_side"
+  },
+  "feedback": {
+    "slop_comparison": {
+      "type": "numeric",
+      "label": "Slop?",
+      "description": "Which of these is less like SEO slop?",
+      "min": 1,
+      "max": 7,
+      "step": 1,
+      "defaultValue": 4,
+      "minLabel": "A is better",
+      "maxLabel": "B is better"
+    }
+  }
+}

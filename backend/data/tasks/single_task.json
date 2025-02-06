@@ -15,7 +15,6 @@
       "type": "numeric",
       "label": "Clarity",
       "description": "Rate how clear and understandable the response is",
-      "required": true,
       "min": 1,
       "max": 5
     },
@@ -23,7 +22,6 @@
       "type": "numeric",
       "label": "Accuracy",
       "description": "Rate how accurate the information is",
-      "required": true,
       "min": 1,
       "max": 5
     },
@@ -31,12 +29,23 @@
       "type": "multiselect",
       "label": "Issues",
       "description": "Select any issues present in the response",
-      "required": false,
       "options": [
-        {"label": "Grammar", "value": "grammar"},
-        {"label": "Factual errors", "value": "factual"},
-        {"label": "Unclear explanation", "value": "unclear"},
-        {"label": "Off-topic", "value": "offtopic"}
+        {
+          "label": "Grammar",
+          "value": "grammar"
+        },
+        {
+          "label": "Factual errors",
+          "value": "factual_errors"
+        },
+        {
+          "label": "Unclear explanation",
+          "value": "unclear_explanation"
+        },
+        {
+          "label": "Off-topic",
+          "value": "off_topic"
+        }
       ]
     }
   }

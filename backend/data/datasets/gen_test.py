@@ -19,7 +19,38 @@ def lorem_ipsum(length: int):
 PROMPT_FORMAT = """EXAMPLE PROMPT {}\n\n{}"""
 RESPONSE_FORMAT = """ {}"""
 
-def generate_dataset(num_samples: int, num_options: int = 2) -> List[Dict[str, Any]]:
+def generate_metadata(timestamp: datetime, content_type: str, **kwargs) -> Dict[str, str]:
+    metadata = {
+        "timestamp": timestamp.isoformat(),
+        "content_type": content_type,
+    }
+    
+    # Add character counts and other metadata based on content type and kwargs
+    if content_type == "chat_completion":
+        metadata.update({
+            "system_char_count": str(len(kwargs.get("system_content", ""))),
+            "user_char_count": str(len(kwargs.get("user_content", ""))),
+            "assistant_char_count": str(len(kwargs.get("assistant_content", ""))),
+            "total_messages": str(len(kwargs.get("prompt", [])) + len(kwargs.get("completion", [])))
+        })
+    elif content_type == "text_completion":
+        metadata.update({
+            "prompt_char_count": str(len(kwargs.get("prompt", ""))),
+            "completion_char_count": str(len(kwargs.get("completion", ""))),
+            "total_char_count": str(len(kwargs.get("prompt", "")) + len(kwargs.get("completion", "")))
+        })
+    else:  # text
+        metadata.update({
+            "text_char_count": str(len(kwargs.get("text", "")))
+        })
+    
+    # Add some random metadata for testing
+    metadata["sample_temperature"] = f"{random.uniform(0.1, 1.0):.2f}"
+    metadata["model_version"] = f"test-model-{random.randint(1, 5)}"
+    
+    return metadata
+
+def generate_dataset(num_samples: int, sample_type: str = "text_completion", num_options: int = 2) -> List[List[Dict[str, Any]]]:
     time_end = datetime.now()
     time_start = time_end - timedelta(days=7)
     samples = []
@@ -30,23 +61,107 @@ def generate_dataset(num_samples: int, num_options: int = 2) -> List[Dict[str, A
         )
         cur_uid = uid()
         
-        data = {
-            "id": cur_uid,
-            "timestamp": random_timestamp.isoformat(),
-            "options": [
+        if sample_type == "chat_completion":
+            system_msg = "You are a helpful AI assistant."
+            user_msg = lorem_ipsum(random.randint(10, 100))
+            assistant_msg = lorem_ipsum(random.randint(10, 200))
+            
+            group = [
                 {
-                    "prompt": PROMPT_FORMAT.format(cur_uid, lorem_ipsum(random.randint(10, 200))),
-                    "completion": RESPONSE_FORMAT.format(lorem_ipsum(random.randint(10, 500)))
-                } for _ in range(num_options)
+                    "type": "chat_completion",
+                    "id": f"{cur_uid}_{i}",
+                    "metadata": generate_metadata(
+                        random_timestamp,
+                        "chat_completion",
+                        system_content=system_msg,
+                        user_content=user_msg,
+                        assistant_content=assistant_msg,
+                        prompt=[{"role": "system", "content": system_msg},
+                               {"role": "user", "content": user_msg}],
+                        completion=[{"role": "assistant", "content": assistant_msg}]
+                    ),
+                    "prompt": [
+                        {"role": "system", "content": system_msg},
+                        {"role": "user", "content": user_msg}
+                    ],
+                    "completion": [
+                        {"role": "assistant", "content": assistant_msg}
+                    ]
+                } for i in range(num_options)
             ]
-        }
-        samples.append(data)
+        elif sample_type == "text_completion":
+            prompt = PROMPT_FORMAT.format(cur_uid, lorem_ipsum(random.randint(10, 200)))
+            completion = RESPONSE_FORMAT.format(lorem_ipsum(random.randint(10, 500)))
+            
+            group = [
+                {
+                    "type": "text_completion",
+                    "id": f"{cur_uid}_{i}",
+                    "metadata": generate_metadata(
+                        random_timestamp,
+                        "text_completion",
+                        prompt=prompt,
+                        completion=completion
+                    ),
+                    "prompt": prompt,
+                    "completion": completion
+                } for i in range(num_options)
+            ]
+        else:  # text
+            text = lorem_ipsum(random.randint(50, 500))
+            group = [
+                {
+                    "type": "text",
+                    "id": f"{cur_uid}_{i}",
+                    "metadata": generate_metadata(
+                        random_timestamp,
+                        "text",
+                        text=text
+                    ),
+                    "text": text
+                } for i in range(num_options)
+            ]
+        
+        samples.append(group)
     
     return samples
 
-def save_dataset(samples: List[Dict[str, Any]], filename: str):
+def save_dataset(samples: List[List[Dict[str, Any]]], filename: str, hidden_metadata: List[str] = None):
+    if not samples:
+        raise ValueError("Cannot save empty dataset")
+        
+    # Validate samples
+    sample_type = samples[0][0]["type"]
+    samples_per_line = len(samples[0])
+    
+    for i, group in enumerate(samples):
+        if len(group) != samples_per_line:
+            raise ValueError(f"Group at index {i} has {len(group)} samples, expected {samples_per_line}")
+        for sample in group:
+            if sample["type"] != sample_type:
+                raise ValueError(f"Sample in group {i} has type {sample['type']}, expected {sample_type}")
+    
+    # Create metadata
+    metadata = {
+        "total_samples": len(samples),
+        "sample_type": sample_type,
+        "samples_per_line": samples_per_line,
+        "hidden_metadata": hidden_metadata or []
+    }
+    
+    # Filter out hidden metadata if specified
+    if hidden_metadata:
+        for group in samples:
+            for sample in group:
+                if "metadata" in sample:
+                    sample["metadata"] = {k: v for k, v in sample["metadata"].items() 
+                                       if k not in hidden_metadata}
+    
     with open(filename, "w") as f:
-        f.write("\n".join(json.dumps(sample) for sample in samples))
+        # Write metadata as first line
+        f.write(json.dumps(metadata) + "\n")
+        # Write samples
+        f.write("\n".join(json.dumps(group) for group in samples))
 
 def generate_task_config(
     name: str,
@@ -80,9 +195,10 @@ os.makedirs("../results", exist_ok=True)
 
 # Generate different types of datasets and tasks
 
-# 1. Basic comparison task with side-by-side display
-comparison_samples = generate_dataset(100, num_options=2)
-save_dataset(comparison_samples, "../datasets/comparison_test.jsonl")
+# 1. Chat completion comparison task
+comparison_samples = generate_dataset(100, sample_type="chat_completion", num_options=2)
+save_dataset(comparison_samples, "../datasets/comparison_test.jsonl", 
+            hidden_metadata=["sample_temperature", "model_version"])
 
 comparison_task = generate_task_config(
     name="Basic Comparison Task",
@@ -104,7 +220,10 @@ comparison_task = generate_task_config(
             "type": "select",
             "label": "Preferred Response",
             "description": "Which response do you prefer?",
-            "options": ["Response 1", "Response 2"]
+            "options": [
+                {"label": "Response 1", "value": "1"},
+                {"label": "Response 2", "value": "2"}
+            ]
         },
         "comments": {
             "type": "text",
@@ -114,9 +233,10 @@ comparison_task = generate_task_config(
     }
 )
 
-# 2. Single response evaluation task
-single_samples = generate_dataset(100, num_options=1)
-save_dataset(single_samples, "../datasets/single_test.jsonl")
+# 2. Text completion single response evaluation task
+single_samples = generate_dataset(100, sample_type="text_completion", num_options=1)
+save_dataset(single_samples, "../datasets/single_test.jsonl",
+            hidden_metadata=["sample_temperature"])
 
 single_task = generate_task_config(
     name="Single Response Evaluation",
@@ -145,14 +265,20 @@ single_task = generate_task_config(
             "type": "multiselect",
             "label": "Issues",
             "description": "Select any issues present in the response",
-            "options": ["Grammar", "Factual errors", "Unclear explanation", "Off-topic"]
+            "options": [
+                {"label": "Grammar", "value": "grammar"},
+                {"label": "Factual errors", "value": "factual_errors"},
+                {"label": "Unclear explanation", "value": "unclear_explanation"},
+                {"label": "Off-topic", "value": "off_topic"}
+            ]
         }
     }
 )
 
-# 3. Stacked comparison task
-stacked_samples = generate_dataset(100, num_options=3)
-save_dataset(stacked_samples, "../datasets/stacked_test.jsonl")
+# 3. Text sample stacked comparison task
+stacked_samples = generate_dataset(100, sample_type="text", num_options=3)
+save_dataset(stacked_samples, "../datasets/stacked_test.jsonl",
+            hidden_metadata=["model_version"])
 
 stacked_task = generate_task_config(
     name="Multi-Response Comparison",
@@ -167,7 +293,11 @@ stacked_task = generate_task_config(
             "type": "ranking",
             "label": "Response Ranking",
             "description": "Rank the responses from best to worst",
-            "options": ["Response 1", "Response 2", "Response 3"]
+            "options": [
+                {"label": "Response 1", "value": "1"},
+                {"label": "Response 2", "value": "2"},
+                {"label": "Response 3", "value": "3"}
+            ]
         },
         "best_aspects": {
             "type": "text",

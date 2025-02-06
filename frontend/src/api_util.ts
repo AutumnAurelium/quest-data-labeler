@@ -11,7 +11,7 @@ import {
 } from "../../shared/types";
 
 export function apiURL(path: string) {
-  return `http://localhost:3000/${path}`;
+  return `/api/${path}`;
 }
 
 export function getTasks() {
@@ -49,7 +49,7 @@ export async function getSample(dataset: string): Promise<Sample[]> {
     const error = await response.json();
     throw new Error(`Failed to fetch sample: ${error.error}`);
   }
-  return response.json();
+  return response.json().then((data) => data[0]);
 }
 
 export async function submitResult(
