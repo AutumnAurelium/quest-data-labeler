@@ -106,6 +106,7 @@ export type TaskDef = {
   feedback: Record<string, Feedback>;
   dataset: string;
   results: string;
+  resultsCount?: number;  // Number of lines in the results file
 };
 
 export type TaskResult = {

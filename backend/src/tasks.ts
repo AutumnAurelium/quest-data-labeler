@@ -10,6 +10,18 @@ function resultsDir() {
   return `${dataDir()}/results`;
 }
 
+function countFileLines(filePath: string): number {
+  try {
+    const content = readFileSync(filePath, 'utf-8');
+    return content.split('\n').filter(line => line.trim().length > 0).length;
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('ENOENT')) {
+      return 0;  // File doesn't exist yet
+    }
+    throw error;
+  }
+}
+
 export function getTasks(): string[] {
   const tasks = readdirSync(taskDir());
   return tasks.map((task) => task.replace(".json", ""));
@@ -37,6 +49,10 @@ export function getTask(name: string): TaskDef {
     if (!task.dataset || !task.results) {
       throw new Error("Missing dataset or results path");
     }
+
+    // Count lines in results file
+    const resultsFile = `${resultsDir()}/${task.results}` + (task.results.endsWith(".jsonl") ? "" : ".jsonl");
+    task.resultsCount = countFileLines(resultsFile);
 
     return task;
   } catch (error) {

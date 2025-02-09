@@ -635,3 +635,10 @@ input[type="range"]:focus::-moz-range-thumb {
   font-weight: bold;
   color: var(--accent-color);
 }
+
+.results-count {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  margin-top: -0.5em;
+  margin-bottom: 1em;
+}

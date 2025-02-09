@@ -142,6 +142,7 @@ export default function TaskView(props: { task: string }) {
   return (
     <div>
       <h2>Task: {task.taskInfo.name}</h2>
+      <p className="results-count">Results submitted: {task.resultsCount || 0}</p>
       <p>{task.taskInfo.description}</p>
       <p>{task.taskInfo.instructions}</p>
 
