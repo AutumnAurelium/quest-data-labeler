@@ -10,7 +10,7 @@ Tasks are defined using JSON files stored in the `backend/data/tasks` directory.
 
 A task is defined using the following JSON structure:
 
-```json
+```typescript
 {
   "taskInfo": {
     "name": string,
@@ -55,7 +55,7 @@ The `feedback` section defines what feedback to collect from labelers. Each feed
 
 #### Select Feedback
 Single-choice selection from a list of options.
-```json
+```typescript
 {
   "type": "select",
   "description": string,
@@ -71,7 +71,7 @@ Single-choice selection from a list of options.
 
 #### Numeric Feedback
 Numeric rating or score within a defined range.
-```json
+```typescript
 {
   "type": "numeric",
   "description": string,
@@ -94,7 +94,7 @@ The numeric feedback type allows collecting numeric ratings or scores:
 
 #### Multiselect Feedback
 Multiple-choice selection from a list of options.
-```json
+```typescript
 {
   "type": "multiselect",
   "description": string,
@@ -110,7 +110,7 @@ Multiple-choice selection from a list of options.
 
 #### Ranking Feedback
 Ordering a list of options by preference or criteria.
-```json
+```typescript
 {
   "type": "ranking",
   "description": string,
@@ -126,7 +126,7 @@ Ordering a list of options by preference or criteria.
 
 #### Text Feedback
 Free-form text input.
-```json
+```typescript
 {
   "type": "text",
   "description": string,
@@ -142,7 +142,7 @@ Free-form text input.
 ## Example Tasks
 
 ### Comparison Task
-```json
+```typescript
 {
   "taskInfo": {
     "name": "Basic Comparison Task",
@@ -179,7 +179,7 @@ Free-form text input.
 ```
 
 ### Single Evaluation Task
-```json
+```typescript
 {
   "taskInfo": {
     "name": "Single Response Evaluation",

@@ -6,7 +6,7 @@ Datasets are stored as JSONL (JSON Lines) files in the `backend/data/datasets` d
 
 - Files must use the `.jsonl` extension
 - The first line must be a JSON object containing dataset metadata:
-  ```json
+  ```typescript
   {
     "total_samples": number,
     "sample_type": "text_completion" | "chat_completion" | "text",
@@ -27,7 +27,7 @@ Each sample must have a unique `id` field and can optionally have a `metadata` f
 
 ### Text Completion Sample
 For labeling prompt-completion pairs, such as those from base models.
-```json
+```typescript
 {
   "type": "text_completion",
   "id": string,
@@ -39,7 +39,7 @@ For labeling prompt-completion pairs, such as those from base models.
 
 ### Chat Completion Sample
 For labeling multi-turn chat-formatted interactions.
-```json
+```typescript
 {
   "type": "chat_completion",
   "id": string,
@@ -61,7 +61,7 @@ For labeling multi-turn chat-formatted interactions.
 
 ### Text Sample
 For labeling individual text snippets.
-```json
+```typescript
 {
   "type": "text",
   "id": string,
