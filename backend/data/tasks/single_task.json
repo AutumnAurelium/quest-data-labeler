@@ -4,7 +4,10 @@
     "description": "Evaluate the quality of individual AI responses",
     "instructions": "Read the response and rate various aspects of its quality."
   },
-  "dataset": "single_test.jsonl",
+  "dataset": {
+    "type": "jsonl",
+    "name": "single_test.jsonl"
+  },
   "results": "single_results.jsonl",
   "presentation": {
     "type": "single",

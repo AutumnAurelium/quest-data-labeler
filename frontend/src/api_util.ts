@@ -7,7 +7,8 @@ import {
   NumericFeedback,
   MultiselectFeedback,
   RankingFeedback,
-  TextFeedback
+  TextFeedback,
+  DatasetRef
 } from "../../shared/types";
 
 export function apiURL(path: string) {
@@ -40,16 +41,26 @@ export type {
   NumericFeedback,
   MultiselectFeedback,
   RankingFeedback,
-  TextFeedback
+  TextFeedback,
+  DatasetRef
 };
 
-export async function getSample(dataset: string): Promise<Sample[]> {
-  const response = await fetch(apiURL(`dataset/${dataset}?samples=1`));
+export async function getSample(ref: DatasetRef): Promise<Sample[]> {
+  const response = await fetch(apiURL(`dataset`), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(ref),
+  });
   if (!response.ok) {
     const error = await response.json();
     throw new Error(`Failed to fetch sample: ${error.error}`);
   }
-  return response.json().then((data) => data[0]);
+  return response.json().then((data) => {
+    console.log(data);
+    return data[0];
+  });
 }
 
 export async function submitResult(

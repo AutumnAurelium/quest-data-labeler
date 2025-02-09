@@ -4,7 +4,10 @@
     "description": "Evaluate the quality of DCLM samples",
     "instructions": "Read the text and determine if it is slop."
   },
-  "dataset": "dclm.jsonl",
+  "dataset": {
+    "type": "jsonl",
+    "name": "dclm.jsonl"
+  },
   "results": "dclm_slop_results.jsonl",
   "presentation": {
     "type": "comparison",

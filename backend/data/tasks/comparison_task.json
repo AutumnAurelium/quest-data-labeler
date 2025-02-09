@@ -4,7 +4,10 @@
     "description": "Compare two AI responses and rate their quality",
     "instructions": "Read both responses carefully and provide ratings for each aspect."
   },
-  "dataset": "comparison_test.jsonl",
+  "dataset": {
+    "type": "jsonl",
+    "name": "comparison_test.jsonl"
+  },
   "results": "comparison_results.jsonl",
   "presentation": {
     "type": "comparison",

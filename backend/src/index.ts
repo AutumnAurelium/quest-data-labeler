@@ -1,6 +1,7 @@
 import express, { Express, Request, Response } from "express";
 import { getTask, appendResults, getTasks } from "./tasks";
-import { sampleDataset } from "./datasets";
+import { getOrCreateDataset } from "./datasets/index";
+import { DatasetRef } from "shared/types";
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
@@ -30,18 +31,14 @@ app.get("/task", async (req: Request, res: Response) => {
   res.json(tasks);
 });
 
-app.get("/dataset/:name", async (req: Request, res: Response) => {
+app.post("/dataset", async (req: Request, res: Response) => {
   try {
-    let samples = Number.parseInt(req.query.samples as string);
-    if (!samples) {
-      samples = 1;
-    }
-
-    const dataset = await sampleDataset(req.params.name, samples);
-    res.json(dataset);
+    const ref = req.body as DatasetRef;
+    const dataset = getOrCreateDataset(ref);
+    res.json(await dataset.get_samples(1));
   } catch (error) {
     if (error instanceof Error && error.message.includes("ENOENT")) {
-      res.status(404).json({ error: `Dataset '${req.params.name}' not found` });
+      res.status(404).json({ error: `Dataset not found` });
     } else {
       console.error("Internal server error:", error);
       res.status(500).json({ error: "Internal server error" });

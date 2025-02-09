@@ -4,7 +4,10 @@
     "description": "Compare three AI responses stacked vertically",
     "instructions": "Review all three responses and provide comparative feedback."
   },
-  "dataset": "stacked_test.jsonl",
+  "dataset": {
+    "type": "jsonl",
+    "name": "stacked_test.jsonl"
+  },
   "results": "stacked_results.jsonl",
   "presentation": {
     "type": "comparison",
