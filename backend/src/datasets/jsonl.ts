@@ -1,4 +1,4 @@
-import { DataSourceType, Sample } from "shared/types";
+import { DatasetType, Sample } from "shared/types";
 import { createReadStream } from "fs";
 import * as readline from "readline";
 import { dataDir } from "../data";
@@ -12,7 +12,7 @@ export function datasetDir() {
 }
 
 export class JSONLDataset implements Dataset {
-    type: DataSourceType = "jsonl";
+    type: DatasetType = "jsonl";
     metadata: DatasetMetadata | null;
     private name: string;
     private filePath: string;

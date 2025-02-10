@@ -1,8 +1,8 @@
-import { DataSourceType, Sample, DatasetRef } from "shared/types";
+import { DatasetType, Sample, DatasetRef } from "shared/types";
 import { JSONLDataset } from "./jsonl";
 
 export interface Dataset {
-    type: DataSourceType;
+    type: DatasetType;
     metadata: DatasetMetadata | null;
 
     init(): Promise<void>;

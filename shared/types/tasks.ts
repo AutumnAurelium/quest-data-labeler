@@ -19,7 +19,7 @@ export type TaskDef = {
 };
 
 export type TaskResult = {
-  sample: Sample;
+  sample: Sample[] | Sample;
   feedback: Record<string, string | string[] | number>;
   timestamp: string;
 }; 

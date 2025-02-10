@@ -78,11 +78,9 @@ export default function TaskView(props: { task: string }) {
         ([key, feedback]) => {
           if (feedback.required === false) return false;
           const value = feedbackWithDefaults[key];
-          // For numeric feedback, check if value is a number (including 0)
           if (feedback.type === "numeric") {
             return typeof value !== "number";
           }
-          // For other types, check if value is empty/undefined
           return !value;
         }
       );
@@ -92,9 +90,9 @@ export default function TaskView(props: { task: string }) {
         return;
       }
 
-      // Prepare and submit results with default values included
+      // Prepare and submit results with all samples for comparison type
       const result: TaskResult = {
-        sample: samples[0], // Submit first sample as the reference
+        sample: task.presentation.type === "comparison" ? samples : samples[0],
         feedback: feedbackWithDefaults,
         timestamp: new Date().toISOString(),
       };
